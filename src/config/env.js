@@ -3,13 +3,19 @@ import 'dotenv/config';
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const DEFAULT_ALLOWED_ORIGINS = [
+  'https://solidaritytn.org',
+  'https://www.solidaritytn.org',
   'https://islamicquestionnaire-work.vercel.app',
   'http://localhost:5173',
   'http://localhost:5174'
 ];
 
 function parseOrigins() {
-  const configured = [process.env.FRONTEND_URL, process.env.CLIENT_ORIGINS]
+  const configured = [
+    process.env.CORS_ORIGINS,
+    process.env.FRONTEND_URL,
+    process.env.CLIENT_ORIGINS
+  ]
     .filter(Boolean)
     .flatMap((value) => value.split(','))
     .map((value) => value.trim().replace(/\/$/, ''))

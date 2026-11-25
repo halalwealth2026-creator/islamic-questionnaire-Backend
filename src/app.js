@@ -12,7 +12,7 @@ const app = express();
 const corsOptions = {
   origin(origin, callback) {
     if (!origin) return callback(null, true);
-    const normalizedOrigin = origin.replace(/\/$/, '');
+    const normalizedOrigin = origin.trim().replace(/\/$/, '');
     if (env.allowedOrigins.includes(normalizedOrigin)) {
       return callback(null, true);
     }
@@ -28,7 +28,6 @@ app.set('trust proxy', 1);
 app.disable('x-powered-by');
 
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
 
 app.use(
   helmet({
