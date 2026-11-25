@@ -2,22 +2,26 @@ import 'dotenv/config';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+const DEFAULT_ALLOWED_ORIGINS = [
+  'https://islamicquestionnaire-work.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:5174'
+];
+
 function parseOrigins() {
   const configured = [process.env.FRONTEND_URL, process.env.CLIENT_ORIGINS]
     .filter(Boolean)
     .flatMap((value) => value.split(','))
     .map((value) => value.trim().replace(/\/$/, ''))
-    .filter(Boolean);
+    .filter((value) => Boolean(value) && value !== '*');
+
+  const origins = [...DEFAULT_ALLOWED_ORIGINS, ...configured];
 
   if (process.env.NODE_ENV !== 'production') {
-    for (const devOrigin of ['http://localhost:5173', 'http://localhost:3000']) {
-      if (!configured.includes(devOrigin)) {
-        configured.push(devOrigin);
-      }
-    }
+    origins.push('http://localhost:3000');
   }
 
-  return Array.from(new Set(configured));
+  return Array.from(new Set(origins));
 }
 
 export function validateEnv() {
@@ -40,10 +44,6 @@ export function validateEnv() {
   const hasPlain = Boolean(process.env.ADMIN_PASSWORD && process.env.ADMIN_PASSWORD.trim().length > 0);
   if (!hasHash && !hasPlain) {
     errors.push('Either ADMIN_PASSWORD_HASH or ADMIN_PASSWORD must be configured.');
-  }
-
-  if (process.env.NODE_ENV === 'production' && parseOrigins().length === 0) {
-    errors.push('FRONTEND_URL or CLIENT_ORIGINS must be configured in production.');
   }
 
   if (errors.length > 0) {
