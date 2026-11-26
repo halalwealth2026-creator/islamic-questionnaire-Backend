@@ -31,9 +31,9 @@ const submissionSchema = new mongoose.Schema(
     submissionId: { type: String, required: true, unique: true, index: true },
     language: { type: String, enum: ['ta', 'en'], default: 'ta', index: true },
     basicInfo: {
-      name: { type: String, required: true, trim: true, maxlength: 120 },
-      email: { type: String, required: true, trim: true, lowercase: true, maxlength: 254 },
-      phone: { type: String, required: true, match: /^\d{10}$/ }
+      name: { type: String, trim: true, maxlength: 120 },
+      email: { type: String, trim: true, lowercase: true, maxlength: 254 },
+      phone: { type: String, match: /^\d{10}$/ }
     },
     answers: { type: [bilingualAnswerSchema], default: undefined },
     responses: { type: [legacyResponseSchema], default: undefined },

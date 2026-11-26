@@ -50,24 +50,35 @@ export async function submitQuestionnaire(req, res, next) {
 
     const { basicInfo, answers, responses } = body;
 
-    if (!basicInfo || typeof basicInfo !== 'object') {
-      return res.status(400).json({ message: msg.basicInfoRequired });
-    }
+    let normalizedBasicInfo;
+    if (basicInfo !== undefined && basicInfo !== null) {
+      if (typeof basicInfo !== 'object' || Array.isArray(basicInfo)) {
+        return res.status(400).json({ message: msg.basicInfoRequired });
+      }
 
-    const name = typeof basicInfo.name === 'string' ? basicInfo.name.trim() : '';
-    const email = typeof basicInfo.email === 'string' ? basicInfo.email.trim().toLowerCase() : '';
-    const phone = typeof basicInfo.phone === 'string' ? basicInfo.phone : '';
+      const name = typeof basicInfo.name === 'string' ? basicInfo.name.trim() : '';
+      const email = typeof basicInfo.email === 'string' ? basicInfo.email.trim().toLowerCase() : '';
+      const phone = typeof basicInfo.phone === 'string' ? basicInfo.phone.trim() : '';
 
-    if (!name || name.length > 120) {
-      return res.status(400).json({ message: msg.invalidName, field: 'name' });
-    }
+      if (name || email || phone) {
+        if (name && name.length > 120) {
+          return res.status(400).json({ message: msg.invalidName, field: 'name' });
+        }
 
-    if (!email || email.length > 254 || email.includes('..') || !STRICT_EMAIL_REGEX.test(email)) {
-      return res.status(400).json({ message: msg.invalidEmail, field: 'email' });
-    }
+        if (email && (email.length > 254 || email.includes('..') || !STRICT_EMAIL_REGEX.test(email))) {
+          return res.status(400).json({ message: msg.invalidEmail, field: 'email' });
+        }
 
-    if (!STRICT_PHONE_REGEX.test(phone)) {
-      return res.status(400).json({ message: msg.invalidPhone, field: 'phone' });
+        if (phone && !STRICT_PHONE_REGEX.test(phone)) {
+          return res.status(400).json({ message: msg.invalidPhone, field: 'phone' });
+        }
+
+        normalizedBasicInfo = {
+          ...(name ? { name } : {}),
+          ...(email ? { email } : {}),
+          ...(phone ? { phone } : {})
+        };
+      }
     }
 
     // Preserve legacy 10-question format compatibility if ever posted
@@ -83,7 +94,7 @@ export async function submitQuestionnaire(req, res, next) {
       const submission = await Submission.create({
         submissionId: generateSubmissionId(),
         language,
-        basicInfo: { name, email, phone },
+        ...(normalizedBasicInfo ? { basicInfo: normalizedBasicInfo } : {}),
         responses: normalizedLegacy,
         submittedAt: new Date()
       });
@@ -227,7 +238,7 @@ export async function submitQuestionnaire(req, res, next) {
     const submission = await Submission.create({
       submissionId: generateSubmissionId(),
       language,
-      basicInfo: { name, email, phone },
+      ...(normalizedBasicInfo ? { basicInfo: normalizedBasicInfo } : {}),
       answers: normalizedAnswers,
       submittedAt: new Date()
     });
